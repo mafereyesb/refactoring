@@ -42,18 +42,10 @@ public class StatementPrinter {
 
         for (final Performance performance : invoice.getPerformances()) {
 
-            // Inline variable: remove rslt
             final int amount = getAmount(performance);
 
-            // volume credits
-            volumeCredits += Math.max(
-                    performance.getAudience() - Constants.BASE_VOLUME_CREDIT_THRESHOLD,
-                    0
-            );
-
-            if ("comedy".equals(getPlay(performance).getType())) {
-                volumeCredits += performance.getAudience() / Constants.COMEDY_EXTRA_VOLUME_FACTOR;
-            }
+            // volume credit contribution
+            volumeCredits += getVolumeCredits(performance);
 
             result.append(String.format(
                     "  %s: %s (%s seats)%n",
@@ -65,9 +57,15 @@ public class StatementPrinter {
             totalAmount += amount;
         }
 
-        result.append(String.format("Amount owed is %s%n",
-                frmt.format(totalAmount / Constants.PERCENT_FACTOR)));
-        result.append(String.format("You earned %s credits%n", volumeCredits));
+        result.append(String.format(
+                "Amount owed is %s%n",
+                frmt.format(totalAmount / Constants.PERCENT_FACTOR)
+        ));
+
+        result.append(String.format(
+                "You earned %s credits%n",
+                volumeCredits
+        ));
 
         return result.toString();
     }
@@ -103,9 +101,27 @@ public class StatementPrinter {
                 break;
 
             default:
-                throw new RuntimeException(String.format("unknown type: %s", play.getType()));
+                throw new RuntimeException(
+                        String.format("unknown type: %s", play.getType())
+                );
+        }
+
+        return result;
+    }
+
+    private int getVolumeCredits(Performance performance) {
+        int result = 0;
+
+        result += Math.max(
+                performance.getAudience() - Constants.BASE_VOLUME_CREDIT_THRESHOLD,
+                0
+        );
+
+        if ("comedy".equals(getPlay(performance).getType())) {
+            result += performance.getAudience() / Constants.COMEDY_EXTRA_VOLUME_FACTOR;
         }
 
         return result;
     }
 }
+
